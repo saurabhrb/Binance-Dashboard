@@ -9,7 +9,7 @@ from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
 
 from binance_f.base.printobject import *
-import ConfigParser
+import configparser
 
 g_account_id = 12345678
 
