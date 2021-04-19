@@ -293,7 +293,7 @@ if __name__ == '__main__':
   config = configparser.ConfigParser()
   config.read('keys.cfg')
 
-  obj = BINANCE(config['KEYS']['API_KEY'], config['KEYS']['SECRET_KEY'])
+  obj = BINANCE(str(config['KEYS']['API_KEY']), str(config['KEYS']['SECRET_KEY']))
 
   obj.get_balance_V2()
   obj.start_webstream()
