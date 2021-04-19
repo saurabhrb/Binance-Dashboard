@@ -1,0 +1,223 @@
+{% extends "layout.html" %}
+{% block body %}
+	
+	<div id="container">
+		<div id="im_div" class="fill">
+			<img src="{{route_variables.img_url}}" class="back_img" width="99%" height="99%">
+		</div>
+		
+		{% if not route_variables.shutdown %}
+			<div class="panes" id="STATS" style="    pointer-events: auto;
+												    z-index: 99;
+												    top: 1%;
+												    left: 0.5%;
+												    width: 99%;
+												    height: auto;
+												    overflow: auto;">
+				
+				<div class="title" >
+					<img class="arrw"> </img>SERVER STATUS:
+					<p id="current" style="display: inline"></p>
+				</div>
+				<div class="content" id="server" style="text-align: left;max-height: 45%;">
+					<input type="text" id="COMMAND" placeholder="Command here" style="width:100%">
+					<br>
+					<div class="head_button" id="sock_stream">
+						STREAM COMMAND
+					</div>
+					&nbsp;
+					<div class="head_button" id="stop_stream">
+						STOP STREAM
+					</div>
+					&nbsp;
+					<div class="head_button" id="sock_connect">
+						CONNECT SERVER
+					</div>
+					&nbsp;
+					<div class="head_button" id="sock_disconnect">
+						DISCONNECT SERVER
+					</div>
+					&nbsp;		
+				</div>
+			</div>
+			<div class="panes" id="" style="pointer-events: auto; z-index: 99; top: 15%; left: 0.5%; width: 99%; height: auto; max-height: 70%;overflow: hidden">
+				<div class="title"><img class="arrw"> </img><p id="div22_content_title" style="display: inline-block;margin:unset">TERMINAL</p></div>
+				<div id="div22_content" class="content content2" style="max-height: 70vh;overflow: auto;background-color: rgba(0, 0, 0, 0.76);
+    				color: #ffffffb3;
+    				text-align: left">
+					TERMINAL OUTPUT
+				</div>
+				<input type="text" style="width:100%" id="INPUT" placeholder="Input here">
+				<div class="head_button" id="sock_send" style="display: none;">
+						SEND INPUT
+					</div>
+			</div>
+			<script>
+			var socket;
+			var curr_pid;
+			var send_stream = false;
+			var interval;
+			var arrw_img_src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAJCAYAAAALpr0TAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyBpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBXaW5kb3dzIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjRCQjdBNUNENDkzMTExRTI4NENBRkFDOUM5MUY0QzI2IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjRCQjdBNUNFNDkzMTExRTI4NENBRkFDOUM5MUY0QzI2Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NEJCN0E1Q0I0OTMxMTFFMjg0Q0FGQUM5QzkxRjRDMjYiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NEJCN0E1Q0M0OTMxMTFFMjg0Q0FGQUM5QzkxRjRDMjYiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4qSqkdAAAAtUlEQVR42nyOPQ6DMAyF3bSIKXeplGP0IL1EpU5dkZiQeoDegBt0ZO4BOjORABL5oX4RZCniDZbl99nPh6ZpjkR0pn19TlxclmW7lHOOANZSykue55uQtZbatiXBfdV1Hc3zvAnCY12FUqrm02Xf93/QOI40TdOLmadYZoUxhkIICUKC1hpthRJB3viy8ViMKCR470v23glcdB+GIT7PACEBSauZQN70eBrP4zIn3JC0+j8BBgCxDV02ZQEC4wAAAABJRU5ErkJggg==";
+			$(document).ready(function(){
+				
+
+				$('.arrw').attr('src',arrw_img_src);
+				$('.title').click(function() {    
+					if ($(this).parent().children(".content").css('display') == 'none')       		
+            			{
+            				$(this).parent().children(".content").css('display','block');
+            				console.log($(this).children(".arrw").css("transform"));
+            				$(this).children(".arrw").css("transform","rotate(0deg)"); /* For modern browsers(CSS3)  */
+        				} 
+					else
+						{
+							$(this).parent().children(".content").css('display','none');
+							console.log($(this).children(".arrw").css("transform"));
+							$(this).children(".arrw").css("transform","rotate(270deg)");
+						} 
+        			});
+
+			console.log('ready');
+			socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
+			
+			function send_command()
+			{
+				curr_pid = 0;
+
+				console.log('clicked stream');
+				var cmd = $('#COMMAND').val();
+				if ($('#COMMAND').val() == "")
+					$('#div22_content').html("BLANK COMMAND");
+				else
+				{
+					$('#div22_content_title').html("TERMINAL, CMD: " + cmd + ", STATUS: <p style='display:inline-block;color: rgb(187,176,27);margin:unset'>RUNNING</p>")
+					$('#div22_content').html("");
+					console.log('sending stream command');
+					socket.emit('stream',cmd);
+					interval = setInterval(function(){ 
+					var objDiv = document.getElementById("div22_content");
+					objDiv.scrollTop = objDiv.scrollHeight;
+					}, 1000);
+				}
+
+			}
+			$( "#sock_stream" ).click(function() {
+				send_command();
+			});
+
+			$( "#sock_connect" ).click(function() {
+				socket.connect(true);
+				console.log('sock_connect');
+			});
+
+			function send_input() {
+				var cmd = $('#INPUT').val();
+				if (cmd != "undefined" && cmd != ""){
+					$('#INPUT').val('');
+					$('#div22_content').html($('#div22_content').html() + cmd + '<br>');
+					socket.emit('send_com2',cmd);	
+				}
+			}
+
+			$('#INPUT').keypress(function (e) {
+				  if (e.which == 13) {
+				    send_input();
+				    return false;
+				  }
+				});
+
+			$('#COMMAND').keypress(function (e) {
+				  if (e.which == 13) {
+				    send_command();
+				    return false;
+				  }
+				});
+
+
+			$( "#sock_send" ).click(function() {
+				send_input();
+			});
+
+			$( "#stop_stream" ).click(function() {
+				socket.emit('stop_stream');	
+
+			});
+			
+
+			$( "#sock_disconnect" ).click(function() {
+				console.log('sock_disconnect');
+				socket.disconnect(true);
+			});
+
+			socket.on('new_process',function(msg){
+				console.log('SOCKET: new_process')
+				curr_pid = msg.pid;
+			});
+
+			socket.on('custom', function(msg) {
+				console.log('SOCKET: \nCustom msg: ', msg.data);
+			});
+
+			socket.on('connect',function(){
+
+
+				$('#current').html('CONNECTED');
+				$("#current").css("color", "rgb(27,187,40)");
+			});
+
+			socket.on('disconnect',function(){
+				$('#current').html('DISCONNECTED');
+				$("#current").css("color", "rgb(177, 22, 22)");
+			});
+
+			socket.on('my response', function(msg) {
+				// console.log("DATA: ", msg.data);
+				console.log('SOCKET: my response');
+				console.log("curr: ",curr_pid);
+				console.log("pid: ",msg.pid);
+				console.log("stats: ",msg.stats);
+				if (curr_pid == msg.pid)
+					{
+						if (msg.stats == 'DONE')
+						{
+							$('#div22_content').animate({scrollTop: $('#div22_content').get(0)}, 1000);
+							clearInterval(interval);
+							var cmd = $('#COMMAND').val();
+							$('#div22_content_title').html("TERMINAL, CMD: " + cmd + ", STATUS: <p style='display:inline-block;color: rgb(27,187,40);margin:unset'>DONE</p>")
+							if (cmd.includes('cd ') || cmd.includes('CD '))
+								$('#div22_content').html($('#div22_content').html()  + '<br>' + msg.data);
+						}
+						else
+							$('#div22_content').html($('#div22_content').html() + msg.data);
+					}
+				else if (msg.stats == 'STOPPED')
+						{
+							$('#div22_content').animate({scrollTop: $('#div22_content').get(0)}, 1000);
+							clearInterval(interval);
+							var cmd = $('#COMMAND').val();
+							$('#div22_content_title').html("TERMINAL, CMD: " + cmd + ", STATUS: <p style='display:inline-block;color: rgb(177, 22, 22);margin:unset'>STOPPED</p>")
+							$('#div22_content').html($('#div22_content').html()  + '<br>' + msg.data);
+						}
+			});
+
+			});
+			</script>
+		{% else %}
+			<script>
+				$( document ).ready(function() {
+				$.ajax({
+					url: "/shut_me"
+					}).done(function() {
+					$( this ).addClass( "done" );
+					});
+				});
+			</script>
+			<div class="panes"  style="text-align: center;font-family: monospace;color:#7d7d7d;font-size: 100px;height: auto;pointer-events: auto; z-index: 99; width:auto; top:25%;left:28%;">
+				SERVER CLOSED!
+			</div>
+			
+		{% endif %}
+		
+	</div>
+	
+{% endblock %}

@@ -566,13 +566,13 @@ class RequestClient(object):
         self.refresh_limits(response[1])
         return response[0]
 
-    def get_position_v2(self) -> any:
+    def get_position_v2(self, noprint=False) -> any:
         """
         Position Information (USER_DATA)
 
         GET /fapi/v2/positionRisk (HMAC SHA256) Get current account information.
         """
-        response = call_sync(self.request_impl.get_position_v2())
+        response = call_sync(self.request_impl.get_position_v2(),noprint)
         self.refresh_limits(response[1])
         return response[0]
 
