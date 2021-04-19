@@ -44,7 +44,7 @@ def test_disconnect():
 @socketio.on('stream')
 def test_send(data):
     # print(obj.positions_str)
-    emit('stream', obj.positions_str)
+    emit('stream', obj.positions_html)
     socketio.sleep(300)
 
 # https://github.com/Binance-docs/Binance_Futures_python
@@ -98,6 +98,10 @@ class Futures_position:
 
   def update_mark(self, markPrice, balance):
     self.markPrice = markPrice
+    self.unrealizedProfit = self.positionAmt * (self.markPrice - self.entryPrice)
+    if self.positionSide == 'SHORT':
+        self.unrealizedProfit = -1 * self.unrealizedProfit
+    # self.roe = 100 * (self.unrealizedProfit / self.isolatedMargin)
 
   def print(self):
     margin_ratio = self.margin_ratio
@@ -106,9 +110,45 @@ class Futures_position:
     p = self.positionSide + ' ' + self.symbol.upper() + ' x' + str(self.leverage) + ' ' + qty_str + ' ' + str(self.entryPrice) + ' ' + str(self.markPrice) + ' ' + str(self.liquidationPrice) + ' ' + str(margin_ratio) + '% ' + str(self.isolatedMargin) + '(' + str(self.marginType) + ') ' + str(self.unrealizedProfit) + ' ' + str(roe) + '%'
     # print(p)
     return p
+  
+  def html_tabel_head(self):
+    p = '''
+    <tr>
+        <th>Position</th>
+        <th>Symbol</th>
+        <th>Leverage</th>
+        <th>Size</th>
+        <th>Entry Price</th>
+        <th>Mark Price</th>
+        <th>Liq. Price</th>
+        <th>Margin Ratio (TODO)</th>
+        <th>Margin (TODO)</th>
+        <th>PNL</th>
+        <th>ROE% (TODO)</th>
+    </tr>
+    '''
+    return p
 
   def html(self):
-
+    margin_ratio = self.margin_ratio
+    roe = self.roe
+    qty_str = str(self.positionAmt) + ' ' + self.symbol.upper().split('USDT')[0]
+    p = '''
+    <tr>
+        <td>''' + self.positionSide + '''</td>
+        <td>''' + self.symbol.upper() + '''</td>
+        <td>x''' + str(self.leverage) + '''</td>
+        <td>''' + qty_str + '''</td>
+        <td>''' + str(self.entryPrice) + '''</td>
+        <td>''' + str(self.markPrice) + '''</td>
+        <td>''' + str(self.liquidationPrice) + '''</td>
+        <td>''' + str(margin_ratio) + '''%</td>
+        <td>''' + str(self.isolatedMargin) + '''(''' + str(self.marginType) + ''')</td>
+        <td>''' + str(self.unrealizedProfit) + '''</td>
+        <td>''' + str(roe) + '''%</td>
+    </tr>
+    '''
+    return p
 
 class BINANCE:
   def __init__(self, api_key, secret_key):
@@ -125,16 +165,23 @@ class BINANCE:
       self.positions[event.symbol.upper()].update_mark(event.markPrice, self.balance)
 
   def print_positions(self):
-    self.positions_str = 'TODO: need to update liquidation, PNL and roe%\n'
-    self.positions_str = 
+    self.positions_str = 'TODO: need to update Margin, Margin ratio and roe%\n'
+    self.positions_html = '''<table style="width:100%; text-align: center" >'''
     print('')
     print('---------------------------------')
     k=1
     for symb in self.positions.keys():
       self.positions_str += str(k) + self.positions[symb].print() + '\n'
+      if k == 1:
+        self.positions_html += self.positions[symb].html_tabel_head()
+      self.positions_html += self.positions[symb].html()
       k+=1
+    print(self.positions_str)
     print('---------------------------------')
     print('')
+    self.positions_html += '''
+    </table>
+    '''
 
   def get_listenkey(self):
     self.listen_key = self.client.start_user_data_stream()
