@@ -93,8 +93,6 @@ class Futures_position:
 
     self.roe = 0
     self.margin_ratio = 0
-    
-    
 
   def update_mark(self, markPrice, balance):
     self.markPrice = markPrice
