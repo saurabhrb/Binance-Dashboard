@@ -1,0 +1,25 @@
+[tool]
+[tool.poetry]
+authors = ["Your Name <you@example.com>"]
+name = "binance_f"
+version = "0.0.0"
+description="flask template"
+[tool.poetry.dependencies]
+ansi2html = "==1.6.0"
+apscheduler = "==3.6.3"
+certifi = "==2020.4.5.2"
+chardet = "==3.0.4"
+eventlet = "==0.31.0"
+flask = "==1.0.2"
+flask-socketio = "==5.1.0"
+gevent = "==1.3.5"
+gevent-websocket = "==0.10.1"
+greenlet = "==0.4.14"
+idna = "==2.9"
+python = "^3.8"
+pytz = "==2020.1"
+requests = "==2.23.0"
+six = "==1.15.0"
+tzlocal = "==2.1"
+urllib3 = "==1.25.9"
+websocket-client = "==0.57.0"
