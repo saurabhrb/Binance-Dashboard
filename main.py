@@ -5,12 +5,12 @@ from flask import request
 import pprint
 
 import logging
-from binance_f import RequestClient
-from binance_f import SubscriptionClient
-from binance_f.model import *
-from binance_f.exception.binanceapiexception import BinanceApiException
+from Binance_Futures_python.binance_f import RequestClient
+from Binance_Futures_python.binance_f import SubscriptionClient
+from Binance_Futures_python.binance_f.model import *
+from Binance_Futures_python.binance_f.exception.binanceapiexception import BinanceApiException
 
-from binance_f.base.printobject import *
+from Binance_Futures_python.binance_f.base.printobject import *
 import configparser
 
 app = Flask(__name__)
@@ -107,7 +107,7 @@ class Futures_position:
     margin_ratio = self.margin_ratio
     roe = self.roe
     qty_str = str(self.positionAmt) + self.symbol.upper().split('USDT')[0]
-    p = self.positionSide + ' ' + self.symbol.upper() + ' x' + str(self.leverage) + ' ' + qty_str + ' ' + str(self.entryPrice) + ' ' + str(self.markPrice) + ' ' + str(self.liquidationPrice) + ' ' + str(margin_ratio) + '% ' + str(self.isolatedMargin) + '(' + str(self.marginType) + ') ' + str(self.unrealizedProfit) + ' ' + str(roe) + '%'
+    p = self.positionSide + ' ' + self.symbol.upper() + ' x' + str(self.leverage) + ' ' + qty_str + ' ' + str(self.entryPrice) + ' ' + str(self.markPrice) + ' ' + str(self.liquidationPrice) + ' ' + str(margin_ratio) + '% ' + str(self.isolatedMargin) + '(' + str(self.marginType) + ') ' + str(self.unrealizedProfit) + ' USDT ' + str(roe) + '%'
     # print(p)
     return p
   
@@ -144,7 +144,7 @@ class Futures_position:
         <td>''' + str(self.liquidationPrice) + '''</td>
         <td>''' + str(margin_ratio) + '''%</td>
         <td>''' + str(self.isolatedMargin) + '''(''' + str(self.marginType) + ''')</td>
-        <td>''' + str(self.unrealizedProfit) + '''</td>
+        <td>''' + str(self.unrealizedProfit) + ''' USDT</td>
         <td>''' + str(roe) + '''%</td>
     </tr>
     '''
@@ -387,4 +387,4 @@ if __name__ == '__main__':
   config = configparser.ConfigParser()
   config.read('keys.cfg')
   obj = BINANCE(str(config['KEYS']['API_KEY']), str(config['KEYS']['SECRET_KEY']))
-  socketio.run(app)
+  socketio.run(app, host='0.0.0.0', port=8080)

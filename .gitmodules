@@ -1,3 +1,4 @@
 [submodule "Binance_Futures_python"]
 	path = Binance_Futures_python
-	url = https://github.com/Binance-docs/Binance_Futures_python.git
+	url = https://github.com/saurabhrb/Binance_Futures_python.git
+	branch = main
