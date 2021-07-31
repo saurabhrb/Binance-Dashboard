@@ -1,18 +1,16 @@
+import pprint
+import configparser
+import logging
+from datetime import date
+import sys
+
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO, emit
 from flask import request
 
-import pprint
-import configparser
-import logging
+from Binance import BINANCE
 
-from binance_f import RequestClient, SubscriptionClient
-from binance_f.exception.binanceapiexception import BinanceApiException
-from binance_f.base.printobject import *
-from binance_f.model import *
-
-import Binance
-
+rand_num = date.today().strftime("%d%m%Y%H%M%S")
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
@@ -22,33 +20,41 @@ def get_page():
     rule = request.url_rule
     print('\nROUTE : ' + str(rule.rule))
     print('')
-    return render_template('index.html')
+    return render_template('index.html',rand_num=rand_num)
 
 @socketio.on('connect')
 def test_connect():
-    # obj.get_balance_V2()
-    # obj.start_webstream()
-    print('connect')
-    emit('stream',0)
-    # print('')
-    # # get current trades
-    # obj.get_open_trades()
-    # print('')
-    # print('')
+    print('Client connected')
 
 @socketio.on('disconnect')
 def test_disconnect():
     print('Client disconnected')
 
-@socketio.on('stream')
-def test_send(data):
-    # print(obj.positions_str)
-    # emit('stream', obj.positions_html)
-    emit('stream',int(data)+1)
-    socketio.sleep(300)
+# @socketio.on('stream')
+# def test_send(data):
+#     # print(obj.positions_str)
+#     # emit('stream', obj.positions_html)
+#     emit('stream',int(data)+1)
+#     socketio.sleep(300)
+
+@socketio.on('user_load')
+def test_user(data):
+    data = data.lower()
+    if data not in config:
+        emit('user_load',{'status' : -1, 'msg' : "no keys found for user : '" + data + "'"})
+    else:
+        OBJs[data]={'api_key' : str(config[data]['API_KEY']), 'secret_key' : str(config[data]['SECRET_KEY'])}
+        # try:
+        OBJs[data]['obj'] = BINANCE(OBJs[data]['api_key'], OBJs[data]['secret_key'])
+        balance_V2 = OBJs[data]['obj'].get_balance_V2()
+        #     emit('user_load',{'status' : 0, 'msg' : "'" + data + "'", 'balance_V2' : str(balance_V2)})
+        # except Exception as e:
+        #     print(sys.exc_info()[2])
+        #     emit('user_load',{'status' : -1, 'msg' : "could not create Binance object for user : '" + data + "'<br>" + str(sys.exc_info()[2])})
 
 @app.route("/data/<path:path>")
 def static_dir(path):
+    path = path.replace(rand_num,"")
     return send_from_directory("data", path)
 
 logger = logging.getLogger("binance-futures")
@@ -57,6 +63,9 @@ handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(handler)
 
+OBJs = {'saurabh' : None}
+config = configparser.ConfigParser()
+config.read('keys.cfg')
 
 if __name__ == '__main__':
-  socketio.run(app, host='0.0.0.0', port=8080)
+    socketio.run(app, debug=True, host='localhost', port=8080)
