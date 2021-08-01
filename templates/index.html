@@ -50,52 +50,34 @@
 
     <header class="page-header header container-fluid ">
         <div class="overlay ">
-            <div class="card bg-light mb-3 " style="margin: 1rem;">
-                <div id="balance_V2" class=" card-header " style="padding:0 ">
-                    <!-- <table class="table ">
-                        <tbody>
-                            <tr>
-                                <th scope="row ">1</th>
-                                <td>Mark</td>
-                                <td>Otto</td>
-                                <td>@mdo</td>
-                            </tr>
-                        </tbody>
-                    </table> -->
-                </div>
-            </div>
-            <div class="card bg-light mb-3 " style=" margin: 1rem; ">
-                <div class="card-header " style="padding:0 ">
+            <div id="balance_card" class="card bg-light mb-3" style="margin: 1rem;">
+                <div lass=" card-header " style="padding:0 ">
                     <table class="table ">
-                        <thead class="thead-light ">
-                            <tr>
-                                <th scope="col ">#</th>
-                                <th scope="col ">First</th>
-                                <th scope="col ">Last</th>
-                                <th scope="col ">Handle</th>
-                            </tr>
-                        </thead>
                         <tbody>
                             <tr>
-                                <th scope="row ">1</th>
-                                <td>Mark</td>
-                                <td>Otto</td>
-                                <td>@mdo</td>
-                            </tr>
-                            <tr>
-                                <th scope="row ">2</th>
-                                <td>Jacob</td>
-                                <td>Thornton</td>
-                                <td>@fat</td>
-                            </tr>
-                            <tr>
-                                <th scope="row ">3</th>
-                                <td>Larry</td>
-                                <td>the Bird</td>
-                                <td>@twitter</td>
+                                <th scope="row ">Balance :
+                                    <p id="balance_V2"></p>
+                                </th>
+                                <th scope="row ">User :
+                                    <p id="user">Need to Load user!</p>
+                                </th>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+            <div id="positions_card" class="card bg-light mb-3 invisible" style=" margin: 1rem; ">
+                <div class="card-header " style="padding:0 ">
+                    <table class="table ">
+                        <thead class="thead-light " id="table_heads">
+                        </thead>
+                        <tbody id="positions">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="open_trades_card" class="card bg-light mb-3 invisible" style=" margin: 1rem; ">
+                <div id="open_trades" class="card-header " style="padding:0 ">
                 </div>
             </div>
         </div>

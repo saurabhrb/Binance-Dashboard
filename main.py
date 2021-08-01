@@ -8,7 +8,7 @@ from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO, emit
 from flask import request
 
-from Binance import BINANCE
+from Binance import BINANCE, Futures_position
 
 rand_num = date.today().strftime("%d%m%Y%H%M%S")
 app = Flask(__name__)
@@ -30,12 +30,10 @@ def test_connect():
 def test_disconnect():
     print('Client disconnected')
 
-# @socketio.on('stream')
-# def test_send(data):
-#     # print(obj.positions_str)
-#     # emit('stream', obj.positions_html)
-#     emit('stream',int(data)+1)
-#     socketio.sleep(300)
+@socketio.on('stream')
+def test_send(data):
+    emit('stream', {'status' : 0, 'msg' : '', 'user' : data, 'positions' : OBJs[data]['obj'].positions_html})
+    socketio.sleep(300)
 
 @socketio.on('user_load')
 def test_user(data):
@@ -43,14 +41,18 @@ def test_user(data):
     if data not in config:
         emit('user_load',{'status' : -1, 'msg' : "no keys found for user : '" + data + "'"})
     else:
-        OBJs[data]={'api_key' : str(config[data]['API_KEY']), 'secret_key' : str(config[data]['SECRET_KEY'])}
-        # try:
-        OBJs[data]['obj'] = BINANCE(OBJs[data]['api_key'], OBJs[data]['secret_key'])
-        balance_V2 = OBJs[data]['obj'].get_balance_V2()
-        #     emit('user_load',{'status' : 0, 'msg' : "'" + data + "'", 'balance_V2' : str(balance_V2)})
-        # except Exception as e:
-        #     print(sys.exc_info()[2])
-        #     emit('user_load',{'status' : -1, 'msg' : "could not create Binance object for user : '" + data + "'<br>" + str(sys.exc_info()[2])})
+      OBJs[data]={'api_key' : str(config[data]['API_KEY']), 'secret_key' : str(config[data]['SECRET_KEY'])}
+      # try:
+      OBJs[data]['obj'] = BINANCE(OBJs[data]['api_key'], OBJs[data]['secret_key'])
+      obj = OBJs[data]['obj']
+      balance_V2 = str(obj.get_balance_V2()) + ' USDT'
+      # start and sign up sockets
+      obj.start_webstream()
+      open_trades = str(obj.get_open_trades())
+      emit('user_load',{'status' : 0, 'msg' : "'" + data + "'", 'user' : data, 'table_heads' : Futures_position.html_tabel_head() , 'balance_V2' : str(balance_V2), 'open_trades' : open_trades})
+      # except Exception as e:
+      #   print(sys.exc_info()[2])
+      #   emit('user_load',{'status' : -1, 'msg' : "could not create Binance object for user : '" + data + "'<br>" + str(sys.exc_info()[2])})
 
 @app.route("/data/<path:path>")
 def static_dir(path):
