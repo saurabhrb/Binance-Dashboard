@@ -9,9 +9,9 @@ def debug(func=None):
             function_name = func.__func__.__qualname__
         except:
             function_name = func.__qualname__
-        print('Binance.' + function_name + '() -->')
+        print(function_name + '() -->')
         res = func(*args, **kwargs)
-        print('<-- Binance.' + function_name + '()')
+        print('<-- ' + function_name + '()')
         return res
     return wrapper
 
@@ -59,15 +59,26 @@ class Futures_position(Position):
         self.markPrice = markPrice
         self.unrealizedProfit = self.positionAmt * (self.markPrice - self.entryPrice)
         if self.positionSide == 'SHORT':
-            self.unrealizedProfit = -1 * self.unrealizedProfit
-        # self.roe = 100 * (self.unrealizedProfit / self.isolatedMargin)
+          self.unrealizedProfit = -1 * self.unrealizedProfit
+        if self.isolatedMargin != 0:
+          self.roe = 100 * (self.unrealizedProfit / self.isolatedMargin)
 
     def print(self):
-        margin_ratio = self.margin_ratio
-        roe = self.roe
-        qty_str = str(self.positionAmt) + self.symbol.upper().split('USDT')[0]
-        p = self.positionSide + ' ' + self.symbol.upper() + ' x' + str(self.leverage) + ' ' + qty_str + ' ' + str(self.entryPrice) + ' ' + str(self.markPrice) + ' ' + str(self.liquidationPrice) + ' ' + str(margin_ratio) + '% ' + str(self.isolatedMargin) + '(' + str(self.marginType) + ') ' + str(self.unrealizedProfit) + ' USDT ' + str(roe) + '%'
-        # print(p)
+        qty_str = ('%.3f' % self.positionAmt) + self.symbol.upper().split('USDT')[0] + '(' + ('%.3f' % (self.positionAmt * self.markPrice)) + 'USDT)'
+        if self.unrealizedProfit < 0:
+          PNL = '-' + ('%.3f' % self.unrealizedProfit) + ' USDT '
+        elif self.unrealizedProfit > 0:
+          PNL = '+' + ('%.3f' % self.unrealizedProfit) + ' USDT '
+        else:
+          PNL = ('%.3f' % self.unrealizedProfit) + ' USDT '
+        if self.roe < 0:
+          ROE = '-' + ('%.3f' % self.roe) + '%'
+        elif self.roe > 0:
+          ROE = '+' + ('%.3f' % self.roe) + '%'
+        else:
+          ROE = ('%.3f' % self.roe) + '%'
+
+        p = self.positionSide + ' ' + self.symbol.upper() + ' x' + ('%d' % self.leverage) + ' ' + qty_str + ' ' + ('%.3f' % self.entryPrice) + ' ' + ('%.3f' % self.markPrice) + ' ' + ('%.3f' % self.liquidationPrice) + ' ' + ('%.3f' % self.margin_ratio) + '% ' + ('%.3f' % self.isolatedMargin) + '(' + str(self.marginType) + ') ' + PNL + ROE
         return p
         
     @staticmethod
@@ -81,31 +92,41 @@ class Futures_position(Position):
             <th>Entry Price</th>
             <th>Mark Price</th>
             <th>Liq. Price</th>
-            <th>Margin Ratio (TODO)</th>
-            <th>Margin (TODO)</th>
+            <th>Margin Ratio%</th>
+            <th>Margin</th>
             <th>PNL</th>
-            <th>ROE% (TODO)</th>
+            <th>ROE%</th>
         </tr>
         '''
         return p
 
     def html(self):
-        margin_ratio = self.margin_ratio
-        roe = self.roe
-        qty_str = str(self.positionAmt) + ' ' + self.symbol.upper().split('USDT')[0]
+        qty_str = ('%.3f' % self.positionAmt) + ' ' + self.symbol.upper().split('USDT')[0] + ' (' + ('%.3f' % (self.positionAmt * self.markPrice)) + ' USDT)'
+        if self.unrealizedProfit < 0:
+          PNL = '-' + ('%.3f' % self.unrealizedProfit) + ' USDT '
+        elif self.unrealizedProfit > 0:
+          PNL = '+' + ('%.3f' % self.unrealizedProfit) + ' USDT '
+        else:
+          PNL = ('%.3f' % self.unrealizedProfit) + ' USDT '
+        if self.roe < 0:
+          ROE = '-' + ('%.3f' % self.roe) + '%'
+        elif self.roe > 0:
+          ROE = '+' + ('%.3f' % self.roe) + '%'
+        else:
+          ROE = ('%.3f' % self.roe) + '%'
         p = '''
         <tr>
             <td>''' + self.positionSide + '''</td>
             <td>''' + self.symbol.upper() + '''</td>
-            <td>x''' + str(self.leverage) + '''</td>
+            <td>''' + ('%d' % self.leverage) + '''x</td>
             <td>''' + qty_str + '''</td>
-            <td>''' + str(self.entryPrice) + '''</td>
-            <td>''' + str(self.markPrice) + '''</td>
-            <td>''' + str(self.liquidationPrice) + '''</td>
-            <td>''' + str(margin_ratio) + '''%</td>
-            <td>''' + str(self.isolatedMargin) + '''(''' + str(self.marginType) + ''')</td>
-            <td>''' + str(self.unrealizedProfit) + ''' USDT</td>
-            <td>''' + str(roe) + '''%</td>
+            <td>''' + ('%.3f' % self.entryPrice) + ''' USDT</td>
+            <td>''' + ('%.3f' % self.markPrice)+ ''' USDT</td>
+            <td>''' + ('%.3f' % self.liquidationPrice) + ''' USDT</td>
+            <td>''' + ('%.3f' % self.margin_ratio) + '''%</td>
+            <td>''' + ('%.3f' % self.isolatedMargin) + ''' USDT (''' + str(self.marginType) + ''')</td>
+            <td>''' + PNL  + '''</td>
+            <td>''' + ROE + '''</td>
         </tr>
         '''
         return p
@@ -116,6 +137,7 @@ class BINANCE:
     self.secret_key = secret_key
     self.client = RequestClient(api_key=self.api_key, secret_key=self.secret_key)
     self.positions = {}
+    self.assets = {}
     self.balance = 0
     self.positions_str = ''
     self.positions_html = ''
@@ -127,7 +149,7 @@ class BINANCE:
 
   @debug
   def print_positions(self):
-    self.positions_str = 'TODO: need to update Margin, Margin ratio and roe%\n'
+    self.positions_str = ''
     self.positions_html = '''<table style="width:100%; text-align: center" >'''
     print('---------------------------------')
     k=1
@@ -146,11 +168,13 @@ class BINANCE:
   @debug
   def get_listenkey(self):
     self.listen_key = self.client.start_user_data_stream()
-    # print("listenKey: ", self.listen_key)
   
   @debug
   def start_webstream(self):
-    # TODO, check if stream already started, end it and start a new one
+    # TODO : check if stream already running and close if already running
+    # if self.sub_client != None:
+    #   self.sub_client.unsubscribe_all()
+    #   self.sub_client = None
     self.sub_client = None
     self.sub_client = SubscriptionClient(api_key=self.api_key,secret_key=self.secret_key)
     self.get_listenkey()
@@ -231,59 +255,40 @@ class BINANCE:
   def sub_error(self, e: 'BinanceApiException'):
     print(e.error_code + e.error_message)
   
-  # @debug
-  # def get_account_info_v2(self):
-  #   result = self.client.get_account_information_v2()
-  #   print("canDeposit: ", result.canDeposit)
-  #   print("canWithdraw: ", result.canWithdraw)
-  #   print("feeTier: ", result.feeTier)
-  #   print("maxWithdrawAmount: ", result.maxWithdrawAmount)
-  #   print("totalInitialMargin: ", result.totalInitialMargin)
-  #   print("totalMaintMargin: ", result.totalMaintMargin)
-  #   print("totalMarginBalance: ", result.totalMarginBalance)
-  #   print("totalOpenOrderInitialMargin: ", result.totalOpenOrderInitialMargin)
-  #   print("totalPositionInitialMargin: ", result.totalPositionInitialMargin)
-  #   print("totalUnrealizedProfit: ", result.totalUnrealizedProfit)
-  #   print("totalWalletBalance: ", result.totalWalletBalance)
-  #   print("totalCrossWalletBalance: ", result.totalCrossWalletBalance)
-  #   print("totalCrossUnPnl: ", result.totalCrossUnPnl)
-  #   print("availableBalance: ", result.availableBalance)
-  #   print("maxWithdrawAmount: ", result.maxWithdrawAmount)
-  #   print("updateTime: ", result.updateTime)
-  #   print("=== Assets ===")
-  #   PrintMix.print_data(result.assets)
-  #   print("==============")
-  #   print("=== Positions ===")
-  #   PrintMix.print_data(result.positions)
-  #   print("==============")
-
-  # @debug
-  # def get_account_info(self):
-  #   result = self.client.get_account_information()
-  #   print("canDeposit: ", result.canDeposit)
-  #   print("canWithdraw: ", result.canWithdraw)
-  #   print("feeTier: ", result.feeTier)
-  #   print("maxWithdrawAmount: ", result.maxWithdrawAmount)
-  #   print("totalInitialMargin: ", result.totalInitialMargin)
-  #   print("totalMaintMargin: ", result.totalMaintMargin)
-  #   print("totalMarginBalance: ", result.totalMarginBalance)
-  #   print("totalOpenOrderInitialMargin: ", result.totalOpenOrderInitialMargin)
-  #   print("totalPositionInitialMargin: ", result.totalPositionInitialMargin)
-  #   print("totalUnrealizedProfit: ", result.totalUnrealizedProfit)
-  #   print("totalWalletBalance: ", result.totalWalletBalance)
-  #   print("updateTime: ", result.updateTime)
-  #   print("=== Assets ===")
-  #   PrintMix.print_data(result.assets)
-  #   print("==============")
-  #   print("=== Positions ===")
-  #   PrintMix.print_data(result.positions)
-  #   print("==============")
-
   @debug
-  def get_leverage_bracket(self):
-    result = self.client.get_leverage_bracket()
-    # PrintMix.print_data(result)
-    return result
+  def get_account_info_v2(self):
+    print('------------')
+    result = self.client.get_account_information_v2()
+    print('------------')
+    if result.totalMarginBalance > 0:
+      margin_ratio = (result.totalMaintMargin/result.totalMarginBalance)*100
+    else:
+      margin_ratio = 0.0
+    # print("canDeposit: ", result.canDeposit)
+    # print("canWithdraw: ", result.canWithdraw)
+    # print("feeTier: ", result.feeTier)
+    # print("maxWithdrawAmount: ", result.maxWithdrawAmount)
+    # print("totalInitialMargin: ", result.totalInitialMargin)
+    # print("totalMaintMargin: ", result.totalMaintMargin)
+    # print("totalMarginBalance: ", result.totalMarginBalance)
+    # print("totalOpenOrderInitialMargin: ", result.totalOpenOrderInitialMargin)
+    # print("totalPositionInitialMargin: ", result.totalPositionInitialMargin)
+    # print("totalUnrealizedProfit: ", result.totalUnrealizedProfit)
+    # print("totalWalletBalance: ", result.totalWalletBalance)
+    # print("totalCrossWalletBalance: ", result.totalCrossWalletBalance)
+    # print("totalCrossUnPnl: ", result.totalCrossUnPnl)
+    # print("availableBalance: ", result.availableBalance)
+    # print("maxWithdrawAmount: ", result.maxWithdrawAmount)
+    # print("updateTime: ", result.updateTime)
+    # print("=== Assets ===")
+    # PrintMix.print_data(result.assets)
+    for asset in result.assets:
+      if asset.availableBalance > 0:
+        self.assets[asset.asset.upper()] = asset
+    for position in result.positions:
+      if position.symbol.upper() in self.positions and self.positions[position.symbol.upper()].positionSide == position.positionSide:
+        self.positions[position.symbol.upper()].margin_ratio = margin_ratio
+        self.positions[position.symbol.upper()].isolatedMargin = position.positionInitialMargin
   
   @debug
   def get_balance(self):
@@ -297,7 +302,6 @@ class BINANCE:
     for res in result:
       if res.asset == "USDT":
         self.balance = res.balance
-    # print(self.balance)
     return self.balance
 
   @debug
@@ -333,7 +337,49 @@ class BINANCE:
         self.positions[position.symbol.upper()].print()
         lst_pairs.append(position.symbol)
         res2.append(position)
+        PrintMix.print_data(position)
         # self.get_leverage_bracket(position.symbol)
-    # PrintMix.print_data(res2)
+
+    # get margin values of orders and assets
+    self.get_account_info_v2()
+
     self.start_mark_price_ticker_stream(lst_pairs)
     return lst_pairs
+  
+  @debug
+  def get_position_margin_change_history(self, symbol):
+    result = self.client.get_position_margin_change_history(symbol=symbol)
+    PrintBasic.print_obj(result)
+
+  @debug
+  def get_account_trades(self,symbol):
+    result = self.client.get_account_trades(symbol=symbol)
+    PrintMix.print_data(result)
+  
+  # class LeverageBracket:
+  #   def __init__(self):
+  #       self.symbol = ""
+  #       self.brackets = list()
+  # class Bracket:
+  #   def __init__(self):
+  #       self.bracket = 0
+  #       self.initialLeverage = 0
+  #       self.notionalCap = 0.0
+  #       self.notionalFloor = 0.0
+  #       self.maintMarginRatio = 0.0
+  #       self.cum = 0.0
+  @debug
+  def get_leverage_bracket(self, symbol, lev):
+    result = self.client.get_leverage_bracket()
+    for res in result:
+      if res.symbol == symbol:
+        for l in res.brackets:
+          if l.initialLeverage == lev:
+            PrintMix.print_data(l)
+          break
+    return result
+
+  @debug
+  def get_order(self, symbol, orderid):
+    result = self.client.get_order(symbol=symbol, orderId=orderid)
+    PrintBasic.print_obj(result)
