@@ -65,15 +65,11 @@ class Futures_position(Position):
 
     def print(self):
         qty_str = ('%.3f' % self.positionAmt) + self.symbol.upper().split('USDT')[0] + '(' + ('%.3f' % (self.positionAmt * self.markPrice)) + 'USDT)'
-        if self.unrealizedProfit < 0:
-          PNL = '-' + ('%.3f' % self.unrealizedProfit) + ' USDT '
-        elif self.unrealizedProfit > 0:
+        if self.unrealizedProfit > 0:
           PNL = '+' + ('%.3f' % self.unrealizedProfit) + ' USDT '
         else:
           PNL = ('%.3f' % self.unrealizedProfit) + ' USDT '
-        if self.roe < 0:
-          ROE = '-' + ('%.3f' % self.roe) + '%'
-        elif self.roe > 0:
+        if self.roe > 0:
           ROE = '+' + ('%.3f' % self.roe) + '%'
         else:
           ROE = ('%.3f' % self.roe) + '%'
@@ -102,15 +98,11 @@ class Futures_position(Position):
 
     def html(self):
         qty_str = ('%.3f' % self.positionAmt) + ' ' + self.symbol.upper().split('USDT')[0] + ' (' + ('%.3f' % (self.positionAmt * self.markPrice)) + ' USDT)'
-        if self.unrealizedProfit < 0:
-          PNL = '-' + ('%.3f' % self.unrealizedProfit) + ' USDT '
-        elif self.unrealizedProfit > 0:
+        if self.unrealizedProfit > 0:
           PNL = '+' + ('%.3f' % self.unrealizedProfit) + ' USDT '
         else:
           PNL = ('%.3f' % self.unrealizedProfit) + ' USDT '
-        if self.roe < 0:
-          ROE = '-' + ('%.3f' % self.roe) + '%'
-        elif self.roe > 0:
+        if self.roe > 0:
           ROE = '+' + ('%.3f' % self.roe) + '%'
         else:
           ROE = ('%.3f' % self.roe) + '%'

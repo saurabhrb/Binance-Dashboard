@@ -3,6 +3,7 @@ import configparser
 import logging
 from datetime import date
 import sys
+from subprocess import call
 
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO, emit
@@ -33,14 +34,15 @@ def test_disconnect():
 
 @socketio.on('stream')
 def test_send(data):
-    emit('stream', {'status' : 0, 'msg' : '', 'user' : data, 'positions' : OBJs[data]['obj'].positions_html})
+    if data in OBJs:
+        emit('stream', {'status' : 0, 'msg' : '', 'user' : data, 'positions' : OBJs[data]['obj'].positions_html})
     socketio.sleep(300)
 
 @socketio.on('user_load')
 def test_user(data):
     data = data.lower()
     if data not in config:
-        emit('user_load',{'status' : -1, 'msg' : "no keys found for user : '" + data + "'"})
+        emit('user_load',{'status' : -1, 'msg' : "no keys found for user : '" + data + "'", 'user' : data})
     else:
         OBJs[data]={'api_key' : str(config[data]['API_KEY']), 'secret_key' : str(config[data]['SECRET_KEY'])}
         try:
@@ -82,6 +84,12 @@ def debug():
 
 
 def main():
+    print('Running setup.sh')
+    with open('setup.sh', 'r') as file:
+        script = file.read()
+    rc = call(script, shell=True)
+    print(rc)
+    print('')
     socketio.run(app, debug=True, host='0.0.0.0', port=8080)
 
 if __name__ == '__main__':

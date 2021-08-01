@@ -20,13 +20,15 @@ function parse_msg(socket_ch, msg) {
     console.log('socket : ', socket_ch)
     console.log('msg : ', msg)
     if (msg['status'] == 0) {
-        for (const [key, value] of Object.entries(msg)) {
-            if (msg != 'status' && msg != 'msg')
-                $('#' + key).html(value);
+        if (username != '' || (username == '' && socket_ch == 'user_load')) {
+            for (const [key, value] of Object.entries(msg)) {
+                if (msg != 'status' && msg != 'msg')
+                    $('#' + key).html(value);
+            }
         }
+
         switch (socket_ch) {
             case 'stream':
-                $('#user').val(username);
                 if (username != '') {
                     $("#positions_card").removeClass('invisible');
                     $("#open_trades_card").removeClass('invisible');
@@ -59,16 +61,16 @@ function parse_msg(socket_ch, msg) {
                 break;
         }
     } else {
+        username = '';
+        $('#balance_V2').html('None');
+        $('#user').html(msg['msg'] + '<br>Stream broken!<br>Need to Load user again!');
+        $("#positions_card").addClass('invisible');
+        $("#open_trades_card").addClass('invisible');
         iziToast.error({
             title: 'Error',
             message: msg['msg'],
             position: 'bottomRight',
         });
-        username = '';
-        $('#balance_V2').html('None');
-        $('#user').html('Stream broken!<br>Need to Load user again!');
-        $("#positions_card").addClass('invisible');
-        $("#open_trades_card").addClass('invisible');
     }
 }
 
