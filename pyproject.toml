@@ -1,9 +1,9 @@
 [tool]
 [tool.poetry]
-authors = ["Your Name <you@example.com>"]
-name = "binance_f"
-version = "0.0.0"
-description="flask template"
+authors = ["saurabhrb <saurabhbadenkalat@gmail.com>"]
+name = "BinanceDashboard"
+version = "1.0.0"
+description="Binance futures dashboard"
 [tool.poetry.dependencies]
 ansi2html = "==1.6.0"
 apscheduler = "==3.6.3"
@@ -18,8 +18,8 @@ greenlet = "==0.4.14"
 idna = "==2.9"
 python = "^3.8"
 pytz = "==2020.1"
-requests = "==2.23.0"
+requests = "==2.26.0"
 six = "==1.15.0"
 tzlocal = "==2.1"
-urllib3 = "==1.25.9"
+urllib3 = "==1.26.6"
 websocket-client = "==0.57.0"
