@@ -15,7 +15,7 @@ from binance_f.base.printobject import *
 rand_num = date.today().strftime("%d%m%Y%H%M%S")
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='eventlet', async_handlers=True)
 
 @app.route('/')
 def get_page():
